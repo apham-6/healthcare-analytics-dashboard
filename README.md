@@ -1,17 +1,11 @@
 # Healthcare Analytics Dashboard
 
 [![Healthcare Dashboard Tests](https://github.com/apham-6/healthcare-analytics-dashboard/actions/workflows/tests.yml/badge.svg)](https://github.com/apham-6/healthcare-analytics-dashboard/actions/workflows/tests.yml)
-
 ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
-
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white)
-
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)
-
 ![Pandas](https://img.shields.io/badge/Pandas-150458?logo=pandas&logoColor=white)
-
 ![Pytest](https://img.shields.io/badge/Pytest-0A9EDC?logo=pytest&logoColor=white)
-
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white)
 
 # Overview
