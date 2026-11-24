@@ -5,6 +5,13 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from src.analytics import (
+    filter_encounters,
+    filter_appointments,
+    calculate_encounter_kpis,
+    calculate_appointment_kpis
+)
+
 # -----------------------------------
 # 1. Page configuration
 # -----------------------------------
@@ -136,32 +143,44 @@ if start_date > end_date:
     st.stop()
 
 # -----------------------------------
-# 5. Filter encounter data
+# 5. Apply dashboard filters
 # -----------------------------------
 
-filtered_encounters = encounters[
-    (encounters["visit_date"].dt.date >= start_date) &
-    (encounters["visit_date"].dt.date <= end_date) &
-    (encounters["department"].isin(selected_departments)) &
-    (encounters["insurance_provider"].isin(selected_providers))
-].copy()
+filtered_encounters = filter_encounters(
+    encounters,
+    start_date,
+    end_date,
+    selected_departments,
+    selected_providers
+)
 
-# -----------------------------------
-# 6. Filter appointment data
-# -----------------------------------
-
-filtered_appointments = appointments[
-    (appointments["appointment_date"].dt.date >= start_date) &
-    (appointments["appointment_date"].dt.date <= end_date) &
-    (appointments["insurance_provider"].isin(selected_providers))
-].copy()
+filtered_appointments = filter_appointments(
+    appointments,
+    start_date,
+    end_date,
+    selected_providers
+)
 
 st.caption(
-    "Department filtering applies to encounters only. "
-    "Appointment metrics use the selected datas and "
-    "insurance providers because appointment records "
-    "do not contain a department."
+    "Department filters apply to encounters only. "
+    "Appointments are filtered by date and insurance provider"
 )
+
+# -----------------------------------
+# 6. Calculate KPI metrics
+# -----------------------------------
+
+encounter_kpis = calculate_encounter_kpis(filtered_encounters)
+
+appointment_kpis = calculate_appointment_kpis(filtered_appointments)
+
+total_encounters = encounter_kpis["total_encounters"]
+unique_patients = encounter_kpis["unique_patients"]
+average_cost = encounter_kpis["average_cost"]
+
+total_appointments = appointment_kpis["total_appointments"]
+no_shows = appointment_kpis["no_shows"]
+no_show_rate = appointment_kpis["no_show_rate"]
 
 # -----------------------------------
 # 7. Calculate KPI metrics
