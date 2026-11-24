@@ -122,7 +122,7 @@ Enables users to dynamically filter healthcare data by department and insurance 
 
 # Application Architechture
 
-'''mermaid
+```mermaid
 flowchart TD
     A[Synthetic Data Generator] --> B[(SQLite Database)]
     B --> D[Streamlit Application]
@@ -133,11 +133,11 @@ flowchart TD
     D --> G[Application Logs]
     H[Pytest] -. Validates .-> C
     H -. Validates .-> B
-'''
+```
 
 # Continuous Integration Pipeline
 
-'''mermaid
+```mermaid
 flowchart TD
     A[Developer Push or Pull Request] --> B[GitHub Actions]
     B --> C[Ubuntu Runner]
@@ -150,7 +150,7 @@ flowchart TD
     H --> |No| J[Failed Workflow]
     J --> K[Review Logs and Fix Code]
     K --> A
-'''
+```
 
 # Project Limitations
 
