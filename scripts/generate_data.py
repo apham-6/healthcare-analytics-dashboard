@@ -184,7 +184,7 @@ cursor.execute("""
         COUNT(e.encounter_id) AS total_encounters
     FROM patients AS p
     JOIN encounters AS e
-        ON p.patient__id = e,patient_id
+        ON p.patient_id = e.patient_id
     GROUP BY p.insurance_provider
     ORDER BY total_encounters DESC
 """) 
