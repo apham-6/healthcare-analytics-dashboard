@@ -12,6 +12,11 @@ from src.analytics import (
     calculate_appointment_kpis
 )
 
+# Implement data logger
+from src.logger import get_logger
+
+logger=get_logger()
+
 # -----------------------------------
 # 1. Page configuration
 # -----------------------------------
@@ -31,6 +36,8 @@ DB_PATH = BASE_DIR / "data" / "healthcare_data.db"
 
 @st.cache_data
 def load_data(database_path, modified_time):
+    logger.info("Loading healthcare data from SQLite")
+    
     with sqlite3.connect(database_path) as connection:
         encounters = pd.read_sql_query("""
             SELECT
@@ -63,31 +70,81 @@ def load_data(database_path, modified_time):
         appointments["appointment_date"] = pd.to_datetime(
             appointments["appointment_date"])
         
+        # Implement data logger
+        logger.info(
+            "Data loaded successfully: %s encounters, %s appointments",
+            len(encounters),
+            len(appointments)
+        )
+        
         return encounters, appointments
     
 if not DB_PATH.is_file():
     st.error("Database not found. Run scripts/generate_data.py to create the database.")
     st.stop()
+
+# Initial data loader, replacing with exception handling    
+# encounters, appointments = load_data(
+#     str(DB_PATH),
+#     DB_PATH.stat().st_mtime_ns
+# )
+
+# Implement error handling
+try:
+    encounters,appointments=load_data(
+        str(DB_PATH),
+        DB_PATH.stat().st_mtime_ns
+    )
+except (sqlite3.Error,pd.errors.DatabaseError,OSError,ValueError):
+    logger.exception("Failed to load healthcare database")
     
-encounters, appointments = load_data(
-    str(DB_PATH),
-    DB_PATH.stat().st_mtime_ns
-)
+    st.error(
+        "Unable to load healthcare data. "
+        "Please verify the database and try again."
+    )
+    
+    st.info(
+        "Run scripts/generate_data.py to regenerate "
+        "the synthetic healthcare database."
+    )
+    
+    st.stop()
+    
+if encounters.empty or appointments.empty:
+    st.warning(
+        "The healthcare database contains an empty dataset. "
+        "Please regenerate the synthetic data."
+    )
+    
+    st.stop()
 
 # -----------------------------------
 # 3. Dashboard header
 # -----------------------------------
 
+# Improved dashboard header
 st.title("🏥 Healthcare Analytics Dashboard")
 
-st.write(
-    "Interactive analysis of synthetic healthcare "
-    "encounters and appointment records."
+st.markdown(
+    "### Clinical Operations & Performance Analytics"
 )
 
 st.caption(
-    "Portfolio project | Python • SQLite • Pandas • Plotly • Streamlit"
+    "Interactive healthcare reporting and operational "
+    "performance monitoring using synthetic data."
 )
+
+st.divider()
+
+# Initial portfolio dashboard header
+# st.write(
+#     "Interactive analysis of synthetic healthcare "
+#     "encounters and appointment records."
+# )
+
+# st.caption(
+#     "Portfolio project | Python • SQLite • Pandas • Plotly • Streamlit"
+# )
 
 # -----------------------------------
 # 4. Sidebar filters
@@ -161,6 +218,13 @@ filtered_appointments = filter_appointments(
     selected_providers
 )
 
+# Logger warnings for empty filtered selections
+if filtered_encounters.empty:
+    logger.warning("No encounters match the selected filters")
+
+if filtered_appointments.empty:
+    logger.warning("No appointments match the selected filters")
+
 st.caption(
     "Department filters apply to encounters only. "
     "Appointments are filtered by date and insurance provider"
@@ -212,29 +276,71 @@ no_show_rate = (
 # 8. Display KPI cards
 # -----------------------------------
 
-st.subheader("Key Performance Indicators")
+# Improved KPI cards
+st.subheader("Operational Performance")
 
-col1, col2, col3, col4 = st.columns(4)
+col1,col2,col3,col4=st.columns(4)
 
 col1.metric(
-    "Total Encounters",
-    f"{total_encounters:,}"
+    label="Total Encounters",
+    value=f"{total_encounters:,}",
+    help="Total healthcare encounters matching the selected filters",
+    border=True
 )
 
 col2.metric(
-    "Unique Patients",
-    f"{unique_patients:,}"
+    label="Unique Patients",
+    value=f"{unique_patients:,}",
+    help="Number of distinct patients with matching encounters.",
+    border=True
 )
 
 col3.metric(
-    "Average Encounter Cost",
-    f"${average_cost:,.2f}"
+    label="Average Encounter Cost",
+    value=(
+        f"${average_cost:,.2f}"
+        if total_encounters>0 else "N/A"
+    ),
+    help="Mean cost per encounter.",
+    border=True
 )
 
 col4.metric(
-    "No-Show Rate",
-    f"{no_show_rate:.1f}%"
+    label="Appointment No-Show Rate",
+    value=(
+        f"{no_show_rate:.1f}%"
+        if total_appointments>0 else "N/A"
+    ),
+    help="No-show appointments divided by all selected appointments.",
+    border=True
 )
+
+st.divider()
+
+# Initial portfolio KPI cards
+# st.subheader("Key Performance Indicators")
+
+# col1, col2, col3, col4 = st.columns(4)
+
+# col1.metric(
+#     "Total Encounters",
+#     f"{total_encounters:,}"
+# )
+
+# col2.metric(
+#     "Unique Patients",
+#     f"{unique_patients:,}"
+# )
+
+# col3.metric(
+#    "Average Encounter Cost",
+#    f"${average_cost:,.2f}"
+# )
+
+# col4.metric(
+#     "No-Show Rate",
+#     f"{no_show_rate:.1f}%"
+# )
 
 # -----------------------------------
 # 9. Monthly encounter trends
@@ -254,6 +360,7 @@ if not filtered_encounters.empty:
         .rename(columns={"size": "encounters"})
     )
     
+    # Improved monthly trend figure
     fig_monthly = px.line(
         monthly_visits,
         x = "month",
@@ -266,9 +373,18 @@ if not filtered_encounters.empty:
         }
     )
     
+    fig_monthly.update_traces(
+        line=dict(color="#147D85",width=3),
+        marker=dict(size=7)
+    )
+    
+    fig_monthly.update_layout(
+    hovermode="x unified"
+    )
+    
     st.plotly_chart(
         fig_monthly,
-        use_container_width = True
+        width="stretch"
     )
 else:
     st.info("No encounter data available for the selected filters.")
@@ -299,9 +415,14 @@ if not filtered_encounters.empty:
         }
     )
     
+    # Improved department figure
+    fig_departments.update_traces(
+        marker_color="#147D85"
+    )
+    
     st.plotly_chart(
         fig_departments,
-        use_container_width = True
+        width="stretch"
     )
 else:
     st.info("No department data available.")
@@ -324,13 +445,29 @@ if not filtered_appointments.empty:
         appointment_summary,
         names = "status",
         values = "count",
-        hole = 0.45,
-        title = "Appointment Status Breakdown"
+        hole = 0.55,
+        title = "Appointment Status Breakdown",
+        color="status",
+        color_discrete_map={
+            "Completed":"#147D85",
+            "Cancelled":"#E8AE43",
+            "No-Show":"#D65C5C"
+        }
+    )
+    
+    # Improved appointment status distribution figure
+    fig_appointments.update_traces(
+        textposition="inside",
+        textinfo="percent+label"
+    )
+    
+    fig_appointments.update_layout(
+        legend_title_text="Appointment Status"
     )
     
     st.plotly_chart(
         fig_appointments,
-        use_container_width = True
+        width="stretch"
     )
 else:
     st.info("No appointment data available for the selected filters.")
@@ -343,7 +480,7 @@ st.subheader("Encounter Records")
 
 st.dataframe(
     filtered_encounters,
-    use_container_width = True,
+    width="stretch",
     hide_index = True
 )
 
