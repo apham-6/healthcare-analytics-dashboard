@@ -1,5 +1,7 @@
 # Healthcare Analytics Dashboard
 
+[![Healthcare Dashboard Tests](https://github.com/apham-6/healthcare-analytics-dashboard/actions/workflows/tests.yml/badge.svg)](https://github.com/apham-6/healthcare-analytics-dashboard/actions/workflows/tests.yml)
+
 # Overview
 
 An interactive healthcare analytics application developed using Python, SQLite, Pandas, Plotly, and Streamlit.
