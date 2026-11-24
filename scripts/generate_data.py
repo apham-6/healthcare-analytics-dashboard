@@ -181,7 +181,7 @@ print(f"\nENCOUNTERS BY INSURANCE PROVIDER:")
 cursor.execute("""
     SELECT
         p.insurance_provider,
-        COUNT(e.encounter_id) AS total_encounters,
+        COUNT(e.encounter_id) AS total_encounters
     FROM patients AS p
     JOIN encounters AS e
         ON p.patient__id = e,patient_id
